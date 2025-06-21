@@ -1,4 +1,3 @@
-
 confirm_dialog() {
     echo " ?? Are you sure you want install $1? [Y/N]: "; read confirm
     confirm=$(echo "$confirm" | tr '[:lower:]' '[:upper:]')

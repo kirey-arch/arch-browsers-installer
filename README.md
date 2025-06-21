@@ -10,7 +10,7 @@ The project is still in its infancy, more browsers will be added later.
 
 ### 🔹Option 1: One-liner (Recommended)
 
-curl -sSL https://github.com/kirey-arch/arch-browsers-installer/releases/latest/download/install.sh | bash
+curl -sSL https://github.com/kirey-arch/arch-browsers-installer/releases/latest/download/browser-installer.sh -o abi.sh && bash abi.sh
 
 > Downloads the latest executable file and runs it
 
