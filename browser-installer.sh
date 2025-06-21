@@ -176,11 +176,44 @@ open_gecko_choice() {
     esac
 }
 
+uninstall_browser() {
+	echo " | ----- Uninstall Browsers ----- | "
+	echo
+	echo " [1] Google Chrome"
+	echo " [2] Vivaldi"
+	echo " [3] Brave"
+	echo " [4] Ungoogled Chromium"
+	echo " [5] Firefox"
+	echo " [6] Waterfox"
+	echo " [7] Librewolf"
+	echo " [8] Tor Browser"
+	echo " [9] Zen Browser"
+	echo
+	echo " [0] Go Back"
+	echo
+	echo " - Type option number: "; read uninstalL_choice
+
+	case $uninstalL_choice in
+		"1") yay -Rns google-chrome ;;
+		"2") yay -Rns vivaldi ;;
+		"3") yay -Rns brave-bin ;;
+		"4") yay -Rns ungoogled-chromium-bin ;;
+		"5") yay -Rns firefox-bin ;;
+		"6") yay -Rns waterfox-bin ;;
+		"7") yay -Rns librewolf-bin ;;
+		"8") sudo pacman -Rns torbrowser-launcher ;;
+		"9") yay -Rns zen-browser-bin ;;
+		"0") main_select_base ;;
+		*) echo " !! Invalid option"; uninstall_browser ;;
+	esac
+}
+
 main_select_base() {
 	echo " | ----- Select browser base ----- | "
 	echo
 	echo " [1] Gecko"
 	echo " [2] Chromium"
+	echo " [3] Uninstall Browser"
 	echo
 	echo " [0] Exit"
 	echo
@@ -192,6 +225,9 @@ main_select_base() {
 			;;
 		"2")
 			open_chromium_choice
+			;;
+		"3")
+			uninstall_browser
 			;;
 		"0")
 			exit 1
