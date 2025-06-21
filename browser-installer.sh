@@ -1,243 +1,332 @@
+#!/bin/bash
+# Program name: Arch Browsers Installer
+# Copyright (C) 2025 kirey-arch
+# Licensed under the GNU GPL v3. See LICENSE for more information.
+
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+check_dependencies() {
+    local missing_deps=()
+    
+    if ! command -v yay >/dev/null 2>&1; then
+        missing_deps+=("yay")
+    fi
+    
+    if ! command -v pacman >/dev/null 2>&1; then
+        missing_deps+=("pacman")
+    fi
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        print_error "Missing required dependencies: ${missing_deps[*]}"
+        print_info "Please install yay (AUR helper) first."
+        exit 1
+    fi
+}
+
 confirm_dialog() {
-    echo " ?? Are you sure you want install $1? [Y/N]: "; read confirm
-    confirm=$(echo "$confirm" | tr '[:lower:]' '[:upper:]')
+    local browser="$1"
+    local response
+    
+    while true; do
+        echo -n " ?? Are you sure you want to install $browser? [Y/n]: "
+        read -r response
+        response=$(echo "$response" | tr '[:lower:]' '[:upper:]')
+        
+        case $response in
+            Y|YES|"")
+                return 0
+                ;;
+            N|NO)
+                return 1
+                ;;
+            *)
+                print_warning "Please enter Y for yes or N for no."
+                ;;
+        esac
+    done
+}
+
+# installer function
+install_browser() {
+    local browser_name="$1"
+    local package_name="$2"
+    local use_pacman="${3:-false}"
+    
+    if confirm_dialog "$browser_name"; then
+        print_info "Installing $browser_name..."
+	print_info "Press ENTER, please."
+        
+        if [[ "$use_pacman" == "true" ]]; then
+            if sudo pacman -S "$package_name" --noconfirm; then
+                print_success "$browser_name installed successfully!"
+            else
+                print_error "Failed to install $browser_name"
+                return 1
+            fi
+        else
+            if yay -S "$package_name" --noconfirm; then
+                print_success "$browser_name installed successfully!"
+            else
+                print_error "Failed to install $browser_name"
+                return 1
+            fi
+        fi
+    else
+        print_info "Installation cancelled."
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# uninstaller function
+uninstall_browser_pkg() {
+    local browser_name="$1"
+    local package_name="$2"
+    local use_pacman="${3:-false}"
+    
+    print_info "Uninstalling $browser_name..."
+    print_info "Press ENTER, please."    
+    if [[ "$use_pacman" == "true" ]]; then
+        if sudo pacman -Rns "$package_name" 2>/dev/null; then
+            print_success "$browser_name uninstalled successfully!"
+        else
+            print_warning "$browser_name was not installed or failed to uninstall"
+        fi
+    else
+        if yay -Rns "$package_name" 2>/dev/null; then
+            print_success "$browser_name uninstalled successfully!"
+        else
+            print_warning "$browser_name was not installed or failed to uninstall"
+        fi
+    fi
 }
 
 open_chromium_choice() {
-	echo " | ----- Select Chromium based browser to Install ----- | "
-	echo
-	echo " [1] Google Chrome (please don't install this shit)"
-	echo " [2] Vivaldi"
-	echo " [3] Brave"
-	echo " [4] Ungoogled Chromium"
-	echo
-	echo " [0] Go back"
-	echo
-	echo " - Type option number"; read chromium_browser_choice
+    echo " | ----- Select Chromium based browser to Install ----- | "
+    echo
+    echo " [1] Google Chrome (please don't install this shit)"
+    echo " [2] Vivaldi"
+    echo " [3] Brave"
+    echo " [4] Ungoogled Chromium"
+    echo
+    echo " [0] Go back"
+    echo
+    echo -n " - Type option number: "
+    read -r chromium_browser_choice
 
-	case $chromium_browser_choice in
-		"1")
-            confirm_dialog "Google Chrome"
-            if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Google Chrome..."
-				yay -S google-chrome --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_chromium_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-		"2")
-            confirm_dialog "Vivaldi"
-
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Vivaldi..."
-				yay -S vivaldi --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_chromium_choice
-			else
-				echo " !! Invalid option."
-			fi	
-			;;
-	
-		"3")
-            confirm_dialog "Brave Browser"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Brave..."
-				yay -S brave-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_chromium_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-		"4")
-            confirm_dialog "Ungoogled Chromium"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Ungoogled Chromium..."
-				yay -S ungoogled-chromium-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_chromium_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-		"0")
-			echo "Ok..."
-			sleep 0.5
-			main_select_base
-			;;
-
-		*)	
-			echo " !! Invalid option."
-			open_chromium_choice
-			;;		
-    esac	
+    case $chromium_browser_choice in
+        "1")
+            install_browser "Google Chrome" "google-chrome"
+            open_chromium_choice
+            ;;
+        "2")
+            install_browser "Vivaldi" "vivaldi"
+            open_chromium_choice
+            ;;
+        "3")
+            install_browser "Brave Browser" "brave-bin"
+            open_chromium_choice
+            ;;
+        "4")
+            install_browser "Ungoogled Chromium" "ungoogled-chromium-bin"
+            open_chromium_choice
+            ;;
+        "0")
+            print_info "Returning to main menu..."
+            sleep 0.5
+            main_select_base
+            ;;
+        *)
+            print_error "Invalid option."
+            open_chromium_choice
+            ;;
+    esac
 }
 
 open_gecko_choice() {
-	echo " | ----- Select Gecko based browser to Install ----- | "
-	echo
-	echo " [1] Firefox"
-	echo " [2] Waterfox"
-	echo " [3] LibreWolf"
-	echo " [4] Tor Browser"
-	echo " [5] Zen Browser" # zen-browser-bin
-	echo
-	echo " [0] Go back"
-	echo
-	echo " - Type option number"; read gecko_browser_choice
+    echo " | ----- Select Gecko based browser to Install ----- | "
+    echo
+    echo " [1] Firefox"
+    echo " [2] Waterfox"
+    echo " [3] LibreWolf"
+    echo " [4] Tor Browser"
+    echo " [5] Zen Browser"
+    echo
+    echo " [0] Go back"
+    echo
+    echo -n " - Type option number: "
+    read -r gecko_browser_choice
 
-	case $gecko_browser_choice in
-		"1")
-            confirm_dialog "Firefox"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Firefox..."
-				yay -S firefox-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_gecko_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-		"2")
-            confirm_dialog "Waterfox"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Waterfox..."
-				yay -S waterfox-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_gecko_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-		
-
-		"3")
-            confirm_dialog "LibreWolf"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing LibreWolf..."
-				yay -S librewolf-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_gecko_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-        "4")
-          confirm_dialog "Tor Browser"
-          if [[ "$confirm" == "Y" ]]; then
-            echo "Installing Tor Browser..."
-            sudo pacman -S torbrowser-launcher --noconfirm
-
-          elif [[ "$confirm" == "N" ]]; then
-            echo "Ok... Exiting."
+    case $gecko_browser_choice in
+        "1")
+            install_browser "Firefox" "firefox-bin"
             open_gecko_choice
-          else
-            echo " !! Invalid option."
-          fi
-          ;;
-		"5")
-            confirm_dialog "Zen Browser"
-			if [[ "$confirm" == "Y" ]]; then
-				echo "Installing Zen Browser..."
-				yay -S zen-browser-bin --noconfirm
-			elif [[ "$confirm" == "N" ]]; then
-				echo "Ok... Exiting."
-				open_gecko_choice
-			else
-				echo " !! Invalid option."
-			fi
-			;;
-
-
-		"0")
-			echo "Ok..."
-			sleep 0.5
-			main_select_base
-			;;
-
-		*)	
-			echo " !! Invalid option."
-			open_chromium_choice
-			;;			
+            ;;
+        "2")
+            install_browser "Waterfox" "waterfox-bin"
+            open_gecko_choice
+            ;;
+        "3")
+            install_browser "LibreWolf" "librewolf-bin"
+            open_gecko_choice
+            ;;
+        "4")
+            install_browser "Tor Browser" "torbrowser-launcher" "true"
+            open_gecko_choice
+            ;;
+        "5")
+            install_browser "Zen Browser" "zen-browser-bin"
+            open_gecko_choice
+            ;;
+        "0")
+            print_info "Returning to main menu..."
+            sleep 0.5
+            main_select_base
+            ;;
+        *)
+            print_error "Invalid option."
+            open_gecko_choice
+            ;;
     esac
 }
 
 uninstall_browser() {
-	echo " | ----- Uninstall Browsers ----- | "
-	echo
-	echo " [1] Google Chrome"
-	echo " [2] Vivaldi"
-	echo " [3] Brave"
-	echo " [4] Ungoogled Chromium"
-	echo " [5] Firefox"
-	echo " [6] Waterfox"
-	echo " [7] Librewolf"
-	echo " [8] Tor Browser"
-	echo " [9] Zen Browser"
-	echo
-	echo " [0] Go Back"
-	echo
-	echo " - Type option number: "; read uninstalL_choice
+    echo " | ----- Uninstall Browsers ----- | "
+    echo
+    echo " [1] Google Chrome"
+    echo " [2] Vivaldi"
+    echo " [3] Brave"
+    echo " [4] Ungoogled Chromium"
+    echo " [5] Firefox"
+    echo " [6] Waterfox"
+    echo " [7] LibreWolf"
+    echo " [8] Tor Browser"
+    echo " [9] Zen Browser"
+    echo
+    echo " [0] Go Back"
+    echo
+    echo -n " - Type option number: "
+    read -r uninstall_choice
 
-	case $uninstalL_choice in
-		"1") yay -Rns google-chrome ;;
-		"2") yay -Rns vivaldi ;;
-		"3") yay -Rns brave-bin ;;
-		"4") yay -Rns ungoogled-chromium-bin ;;
-		"5") yay -Rns firefox-bin ;;
-		"6") yay -Rns waterfox-bin ;;
-		"7") yay -Rns librewolf-bin ;;
-		"8") sudo pacman -Rns torbrowser-launcher ;;
-		"9") yay -Rns zen-browser-bin ;;
-		"0") main_select_base ;;
-		*) echo " !! Invalid option"; uninstall_browser ;;
-	esac
+    case $uninstall_choice in
+        "1")
+            uninstall_browser_pkg "Google Chrome" "google-chrome"
+            ;;
+        "2")
+            uninstall_browser_pkg "Vivaldi" "vivaldi"
+            ;;
+        "3")
+            uninstall_browser_pkg "Brave" "brave-bin"
+            ;;
+        "4")
+            uninstall_browser_pkg "Ungoogled Chromium" "ungoogled-chromium-bin"
+            ;;
+        "5")
+            uninstall_browser_pkg "Firefox" "firefox-bin"
+            ;;
+        "6")
+            uninstall_browser_pkg "Waterfox" "waterfox-bin"
+            ;;
+        "7")
+            uninstall_browser_pkg "LibreWolf" "librewolf-bin"
+            ;;
+        "8")
+            uninstall_browser_pkg "Tor Browser" "torbrowser-launcher" "true"
+            ;;
+        "9")
+            uninstall_browser_pkg "Zen Browser" "zen-browser-bin"
+            ;;
+        "0")
+            main_select_base
+            ;;
+        *)
+            print_error "Invalid option."
+            uninstall_browser
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+    uninstall_browser
 }
 
+# welcome message
+show_welcome() {
+    clear
+    echo "=========================================="
+    echo "      Arch Browsers Installer v2.0"
+    echo "=========================================="
+    echo
+    print_info "Welcome to the Arch Linux Browser Installer!"
+    print_info "This script helps you install popular web browsers."
+    echo
+}
+
+# main function
 main_select_base() {
-	echo " | ----- Select browser base ----- | "
-	echo
-	echo " [1] Gecko"
-	echo " [2] Chromium"
-	echo " [3] Uninstall Browser"
-	echo
-	echo " [0] Exit"
-	echo
-	echo " - Type option number: "; read choice
+    show_welcome
+    echo " | ----- Select browser base ----- | "
+    echo
+    echo " [1] Gecko based browsers (Firefox, LibreWolf, etc.)"
+    echo " [2] Chromium based browsers (Chrome, Brave, etc.)"
+    echo " [3] Uninstall Browser"
+    echo
+    echo " [0] Exit"
+    echo
+    echo -n " - Type option number: "
+    read -r choice
 
-	case $choice in
-		"1")
-			open_gecko_choice
-			;;
-		"2")
-			open_chromium_choice
-			;;
-		"3")
-			uninstall_browser
-			;;
-		"0")
-			exit 1
-			;;
-		*)
-			echo " !! Invalid option."
-			main_select_base
-			;;
-	esac
-
+    case $choice in
+        "1")
+            open_gecko_choice
+            ;;
+        "2")
+            open_chromium_choice
+            ;;
+        "3")
+            uninstall_browser
+            ;;
+        "0")
+	    echo
+            print_info "Thanks for using Arch Browsers Installer!"
+            exit 0
+            ;;
+        *)
+            print_error "Invalid option."
+            sleep 1
+            main_select_base
+            ;;
+    esac
 }
 
-main_select_base
+# initialization
+main() {
+    # running on arch?
+    if [[ ! -f /etc/arch-release ]]; then
+        print_error "This script is designed for Arch Linux only!"
+        exit 1
+    fi
+    
+    # dependencies
+    check_dependencies
+    
+    # main menu
+    main_select_base
+}
+
+# Run the script
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
