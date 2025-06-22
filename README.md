@@ -31,6 +31,10 @@ In case you're curious or paranoid, here are the official sites:
 - [LibreWolf](https://librewolf.net/)
 - [Tor Browser](https://www.torproject.org/)
 - [Zen Browser](https://aur.archlinux.org/packages/zen-browser-bin) *(AUR link)*
+- [Firefox Developer](https://www.mozilla.org/firefox/developer/)
+- [Firefox Nightly](https://www.mozilla.org/firefox/channel/desktop#nightly)
+- [Microsoft Edge](https://www.microsoft.com/edge)
+- [IceCat](https://icecatbrowser.org/)
 
 ## 🙏 Credits & Acknowledgements
 

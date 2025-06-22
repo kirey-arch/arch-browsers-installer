@@ -120,6 +120,8 @@ open_chromium_choice() {
     echo " [2] Vivaldi"
     echo " [3] Brave"
     echo " [4] Ungoogled Chromium"
+    echo " [5] Microsoft Edge (... Really? Ok.)"
+    echo " [6] Opera"
     echo
     echo " [0] Go back"
     echo
@@ -143,7 +145,15 @@ open_chromium_choice() {
             install_browser "Ungoogled Chromium" "ungoogled-chromium-bin"
             open_chromium_choice
             ;;
-        "0")
+		"5")
+	   		install_browser "Microsoft Edge" "microsoft-edge-stable-bin"
+		    open_chromium_choice
+            ;;
+		"6")
+	    install_browser "Opera" "opera"
+            open_chromium_choice
+	    ;;
+		"0")
             print_info "Returning to main menu..."
             sleep 0.5
             main_select_base
@@ -163,6 +173,8 @@ open_gecko_choice() {
     echo " [3] LibreWolf"
     echo " [4] Tor Browser"
     echo " [5] Zen Browser"
+    echo " [6] Firefox Developer"
+    echo " [7] Firefox Nightly"
     echo
     echo " [0] Go back"
     echo
@@ -190,6 +202,18 @@ open_gecko_choice() {
             install_browser "Zen Browser" "zen-browser-bin"
             open_gecko_choice
             ;;
+		"6")
+			install_browser "Firefox Developer" "firefox-developer-edition"
+			open_gecko_choice
+            ;;
+		"7")
+			install_browser "Firefox Nightly" "firefox-nightly"
+			open_gecko_choice
+			;;
+		"8")
+			install_browser "IceCat" "icecat-bin"
+			open_gecko_choice
+			;;
         "0")
             print_info "Returning to main menu..."
             sleep 0.5
@@ -214,6 +238,7 @@ uninstall_browser() {
     echo " [7] LibreWolf"
     echo " [8] Tor Browser"
     echo " [9] Zen Browser"
+    echo " [10] Microsoft Edge"
     echo
     echo " [0] Go Back"
     echo
@@ -223,31 +248,59 @@ uninstall_browser() {
     case $uninstall_choice in
         "1")
             uninstall_browser_pkg "Google Chrome" "google-chrome"
+            uninstall_browser
             ;;
         "2")
             uninstall_browser_pkg "Vivaldi" "vivaldi"
+            uninstall_browser
             ;;
         "3")
             uninstall_browser_pkg "Brave" "brave-bin"
+            uninstall_browser
             ;;
         "4")
             uninstall_browser_pkg "Ungoogled Chromium" "ungoogled-chromium-bin"
+            uninstall_browser
             ;;
         "5")
             uninstall_browser_pkg "Firefox" "firefox-bin"
+            uninstall_browser
             ;;
         "6")
             uninstall_browser_pkg "Waterfox" "waterfox-bin"
+            uninstall_browser
             ;;
         "7")
             uninstall_browser_pkg "LibreWolf" "librewolf-bin"
+            uninstall_browser
             ;;
         "8")
             uninstall_browser_pkg "Tor Browser" "torbrowser-launcher" "true"
+            uninstall_browser
             ;;
         "9")
             uninstall_browser_pkg "Zen Browser" "zen-browser-bin"
+            uninstall_browser
             ;;
+		"10")
+	   		uninstall_browser_pkg "Microsoft Edge" "microsoft-edge-stable-bin"
+	    	uninstall_browser
+	    	;;
+		"11")
+	   		uninstall_browser_pkg "Opera" "opera"
+	   		uninstall_browser
+	   		;;
+	   	"12")
+	   		uninstall_browser_pkg "Firefox Developer" "firefox-developer-edition"
+	   		uninstall_browser
+	   		;;
+	   	"13")
+	   		uninstall_browser_pkg "Firefox Nightly" "firefox-nightly"
+			uninstall_browser
+			;;
+		"14")
+			uninstall_browser "IceCat" "icecat-bin"
+       		uninstall_browser
         "0")
             main_select_base
             ;;
