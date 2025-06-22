@@ -301,6 +301,7 @@ uninstall_browser() {
 		"14")
 			uninstall_browser "IceCat" "icecat-bin"
        		uninstall_browser
+       		;;
         "0")
             main_select_base
             ;;
